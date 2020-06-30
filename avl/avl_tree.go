@@ -94,24 +94,6 @@ func (node *TreeNode) findMaxValue() *TreeNode {
 	return tmp
 }
 
-// find node with given val
-func (node *TreeNode) Find(val int) *TreeNode {
-	if val == node.Val {
-		return node
-	}
-	if val < node.Val {
-		if node.Left != nil {
-			return node.Left.Find(val)
-		}
-		return nil
-	} else {
-		if node.Right != nil {
-			return node.Right.Find(val)
-		}
-		return nil
-	}
-}
-
 // remove the node with min val in the subtree
 func (node *TreeNode) removeMinValue() *TreeNode {
 	if node.Left == nil {
@@ -176,6 +158,25 @@ func (node *TreeNode) findMinimumLargerOrEqual(val int) *TreeNode {
 			return node
 		}
 		return node.Right.findMinimumLargerOrEqual(val)
+	}
+}
+
+// Export function
+// find node with given val
+func (node *TreeNode) Find(val int) *TreeNode {
+	if val == node.Val {
+		return node
+	}
+	if val < node.Val {
+		if node.Left != nil {
+			return node.Left.Find(val)
+		}
+		return nil
+	} else {
+		if node.Right != nil {
+			return node.Right.Find(val)
+		}
+		return nil
 	}
 }
 
