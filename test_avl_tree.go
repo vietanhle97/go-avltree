@@ -40,15 +40,15 @@ func insertAVLTree(root *TreeNode, val []int) *TreeNode {
 }
 
 func main() {
-	//traverse := make([]interface{}, 0)
-	//height := map[interface{}]int{}
-	//check := map[interface{}]int{}
-	val := []int{1, 2, 3, 4, 6, 7, 8, 11, 14, 15}
+	traverse := make([]interface{}, 0)
+	height := map[interface{}]int{}
+	check := map[interface{}]int{}
+	val := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	start := time.Now()
 	avl := insertAVLTree(nil, val)
 	end := time.Now()
-	//inOrder(avl, &traverse)
-	//levelOfAllSubTree(avl, 0, &height, &check)
+	inOrder(avl, &traverse)
+	levelOfAllSubTree(avl, 0, &height, &check)
 	ceiling, floor := avl.Ceiling(16), avl.Floor(10)
 	node := avl.Find(4)
 	if node == nil {
@@ -66,5 +66,11 @@ func main() {
 	} else {
 		fmt.Println(floor)
 	}
-	fmt.Println(avl.CountNodes(), end.Sub(start))
+	fmt.Println(traverse, height, avl.CountNodes(), end.Sub(start))
+	avl.Remove(6)
+	traverse = make([]interface{}, 0)
+	height = map[interface{}]int{}
+	inOrder(avl, &traverse)
+	levelOfAllSubTree(avl, 0, &height, &check)
+	fmt.Println(traverse, height, avl.CountNodes())
 }
