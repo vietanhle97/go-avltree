@@ -119,6 +119,7 @@ func (node *TreeNode) postOrder(cur []int, res *int) {
 }
 
 // Find the node with the maximum val smaller than the given val
+// If not found, return the node with the minimum val
 func (node *TreeNode) findMaximumSmallerOrEqual(val int) *TreeNode {
 	if val == node.Val {
 		return node
@@ -141,6 +142,7 @@ func (node *TreeNode) findMaximumSmallerOrEqual(val int) *TreeNode {
 }
 
 // Find the node with minimum val larger than or equal given val
+// If not found, return the node with the maximum val
 func (node *TreeNode) findMinimumLargerOrEqual(val int) *TreeNode {
 	if val == node.Val {
 		return node
