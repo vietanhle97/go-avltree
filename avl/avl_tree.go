@@ -9,245 +9,232 @@ func max(a, b int) int { return int(math.Max(float64(a), float64(b))) }
 func abs(a int) int { return int(math.Abs(float64(a))) }
 
 type TreeNode struct {
-	Val    int
-	Height int
-	Left   *TreeNode
-	Right  *TreeNode
+	Val      int
+	Height   int
+	ChildCnt int // Count the number of root of the sub-tree which the current root is root
+	Left     *TreeNode
+	Right    *TreeNode
 }
 
 // calculate height of left subtree
-func (node *TreeNode) leftSubTreeHeight() int {
-	if node.Left == nil {
-		return -1
+func (root *TreeNode) leftSubTreeHeightAndNodeCount() []int {
+	if root.Left == nil {
+		return []int{-1, 0}
 	}
-	return node.Left.Height
+	return []int{root.Left.Height, root.Left.ChildCnt}
 }
 
 // calculate height of right subtree
-func (node *TreeNode) rightSubTreeHeight() int {
-	if node.Right == nil {
-		return -1
+func (root *TreeNode) rightSubTreeHeightAndNodeCount() []int {
+	if root.Right == nil {
+		return []int{-1, 0}
 	}
-	return node.Right.Height
+	return []int{root.Right.Height, root.Right.ChildCnt}
 }
 
 // update height of current root and check whether it is balanced or not
-func (node *TreeNode) reComputeHeight() bool {
-	ls := node.leftSubTreeHeight()
-	rs := node.rightSubTreeHeight()
-	node.Height = max(ls, rs) + 1
-	return abs(ls-rs) > 1
+func (root *TreeNode) reComputeHeight() bool {
+	ls := root.leftSubTreeHeightAndNodeCount()
+	rs := root.rightSubTreeHeightAndNodeCount()
+	root.Height = max(ls[0], rs[0]) + 1
+	root.ChildCnt = ls[1] + rs[1] + 1
+	return abs(ls[0]-rs[0]) > 1
 }
 
 // left rotate the unbalance subtree
-func (node *TreeNode) rotateLeft() *TreeNode {
-	newRoot := node.Right
-	tmp := node.Right.Left
-	node.Right = tmp
-	node.reComputeHeight()
-	newRoot.Left = node
+func (root *TreeNode) rotateLeft() *TreeNode {
+	newRoot := root.Right
+	tmp := root.Right.Left
+	root.Right = tmp
+	root.reComputeHeight()
+	newRoot.Left = root
 	newRoot.reComputeHeight()
 	return newRoot
 }
 
 // right rotate the unbalance subtree
-func (node *TreeNode) rotateRight() *TreeNode {
-	newRoot := node.Left
-	tmp := node.Left.Right
-	node.Left = tmp
-	node.reComputeHeight()
-	newRoot.Right = node
+func (root *TreeNode) rotateRight() *TreeNode {
+	newRoot := root.Left
+	tmp := root.Left.Right
+	root.Left = tmp
+	root.reComputeHeight()
+	newRoot.Right = root
 	newRoot.reComputeHeight()
 	return newRoot
 }
 
-// rebalance the tree
-func (node *TreeNode) reBalance() *TreeNode {
-	if node.rightSubTreeHeight() > node.leftSubTreeHeight() {
-		if node.Right.leftSubTreeHeight() > node.Right.leftSubTreeHeight() {
-			node.Right = node.Right.rotateRight()
+// re-balance the tree
+func (root *TreeNode) reBalance() *TreeNode {
+	ls := root.leftSubTreeHeightAndNodeCount()
+	rs := root.rightSubTreeHeightAndNodeCount()
+	if rs[0] > ls[0] {
+		rLS := root.Right.leftSubTreeHeightAndNodeCount()  // left sub-tree of right sub-tree
+		rRS := root.Right.rightSubTreeHeightAndNodeCount() // right sub-tree of right sub-tree
+		if rLS[0] > rRS[0] {
+			root.Right = root.Right.rotateRight()
 		}
-		return node.rotateLeft()
+		return root.rotateLeft()
 	} else {
-		if node.Left.rightSubTreeHeight() > node.leftSubTreeHeight() {
-			node.Left = node.Left.rotateLeft()
+		lLS := root.Left.leftSubTreeHeightAndNodeCount()  // left sub-tree of left sub-tree
+		lRS := root.Left.rightSubTreeHeightAndNodeCount() // right sub-tree of left sub-tree
+		if lRS[0] > lLS[0] {
+			root.Left = root.Left.rotateLeft()
 		}
-		return node.rotateRight()
+		return root.rotateRight()
 	}
 }
 
-// find node with min val of the subtree
-func (node *TreeNode) findMinValue() *TreeNode {
-	tmp := node
+// find root with min val of the subtree
+func (root *TreeNode) findMinValue() *TreeNode {
+	tmp := root
 	for tmp.Left != nil {
 		tmp = tmp.Left
 	}
 	return tmp
 }
 
-// find node with max val of the subtree
-func (node *TreeNode) findMaxValue() *TreeNode {
-	tmp := node
+// find root with max val of the subtree
+func (root *TreeNode) findMaxValue() *TreeNode {
+	tmp := root
 	for tmp.Right != nil {
 		tmp = tmp.Right
 	}
 	return tmp
 }
 
-// remove the node with min val in the subtree
-func (node *TreeNode) removeMinValue() *TreeNode {
-	if node.Left == nil {
-		return node.Right
+// remove the root with min val in the subtree
+func (root *TreeNode) removeMinValue() *TreeNode {
+	if root.Left == nil {
+		return root.Right
 	}
-	node.Left = node.Left.removeMinValue()
-	if node.reComputeHeight() {
-		return node.reBalance()
+	root.Left = root.Left.removeMinValue()
+	if root.reComputeHeight() {
+		return root.reBalance()
 	}
-	return node
+	return root
 }
 
-//traverse the tree with post order to count the total nodes
-func (node *TreeNode) postOrder(cur []int, res *int) {
-	if node == nil {
-		return
-	}
-	ls, rs := []int{0}, []int{0}
-	node.Left.postOrder(ls, res)
-	node.Right.postOrder(rs, res)
-	cur[0] = ls[0] + rs[0] + 1
-	*res = max(*res, cur[0])
-}
-
-// Find the node with the maximum val smaller than the given val
-// If not found, return the node with the minimum val
-func (node *TreeNode) findMaximumSmallerOrEqual(val int) *TreeNode {
-	if val == node.Val {
-		return node
-	} else if val > node.Val {
-		if node.Right == nil {
-			return node
+// Find the root with the maximum val smaller than the given val
+// If not found, return the root with the minimum val
+func (root *TreeNode) findMaximumSmallerOrEqual(val int) *TreeNode {
+	if val == root.Val {
+		return root
+	} else if val > root.Val {
+		if root.Right == nil {
+			return root
 		}
-		rs := node.Right.findMaximumSmallerOrEqual(val)
+		rs := root.Right.findMaximumSmallerOrEqual(val)
 		if rs.Val > val {
-			return node
+			return root
 		}
 		return rs
 	} else {
-		if node.Left == nil {
-			return node
+		if root.Left == nil {
+			return root
 		}
-		return node.Left.findMaximumSmallerOrEqual(val)
+		return root.Left.findMaximumSmallerOrEqual(val)
 
 	}
 }
 
-// Find the node with minimum val larger than or equal given val
-// If not found, return the node with the maximum val
-func (node *TreeNode) findMinimumLargerOrEqual(val int) *TreeNode {
-	if val == node.Val {
-		return node
-	} else if val < node.Val {
-		if node.Left == nil {
-			return node
+// Find the root with minimum val larger than or equal given val
+// If not found, return the root with the maximum val
+func (root *TreeNode) findMinimumLargerOrEqual(val int) *TreeNode {
+	if val == root.Val {
+		return root
+	} else if val < root.Val {
+		if root.Left == nil {
+			return root
 		}
-		ls := node.Left.findMinimumLargerOrEqual(val)
+		ls := root.Left.findMinimumLargerOrEqual(val)
 		if ls.Val < val {
-			return node
+			return root
 		}
 		return ls
 	} else {
-		if node.Right == nil {
-			return node
+		if root.Right == nil {
+			return root
 		}
-		return node.Right.findMinimumLargerOrEqual(val)
+		return root.Right.findMinimumLargerOrEqual(val)
 	}
 }
 
 // Export function
-// find node with given val
-func (node *TreeNode) Find(val int) *TreeNode {
-	if val == node.Val {
-		return node
+// find root with given val
+func (root *TreeNode) Find(val int) *TreeNode {
+	if val == root.Val {
+		return root
 	}
-	if val < node.Val {
-		if node.Left != nil {
-			return node.Left.Find(val)
+	if val < root.Val {
+		if root.Left != nil {
+			return root.Left.Find(val)
 		}
 		return nil
 	} else {
-		if node.Right != nil {
-			return node.Right.Find(val)
+		if root.Right != nil {
+			return root.Right.Find(val)
 		}
 		return nil
 	}
 }
 
 // Export function
-// Insert new node with val and value
-func (node *TreeNode) Insert(val int) *TreeNode {
-	if node == nil {
-		return &TreeNode{val, 0, nil, nil}
+// Insert new root with val and value
+func (root *TreeNode) Insert(val int) *TreeNode {
+	if root == nil {
+		return &TreeNode{val, 0, 1, nil, nil}
 	}
-	if val == node.Val {
-		return node
+	if val == root.Val {
+		return root
 	}
-	if val < node.Val {
-		if node.Left == nil {
-			node.Left = &TreeNode{val, 0, nil, nil}
+	if val < root.Val {
+		if root.Left == nil {
+			root.Left = &TreeNode{val, 0, 1, nil, nil}
 		} else {
-			node.Left = node.Left.Insert(val)
+			root.Left = root.Left.Insert(val)
 		}
 	} else {
-		if node.Right == nil {
-			node.Right = &TreeNode{val, 0, nil, nil}
+		if root.Right == nil {
+			root.Right = &TreeNode{val, 0, 1, nil, nil}
 		} else {
-			node.Right = node.Right.Insert(val)
+			root.Right = root.Right.Insert(val)
 		}
 	}
-	if node.reComputeHeight() {
-		return node.reBalance()
+	if root.reComputeHeight() {
+		return root.reBalance()
 	}
-	return node
+	return root
 }
 
 // Export function
-// Remove a node from the sub-tree
-func (node *TreeNode) Remove(val int) *TreeNode {
-	if val < node.Val && node.Left != nil {
-		node.Left = node.Left.Remove(val)
-	} else if val > node.Val && node.Right != nil {
-		node.Right = node.Right.Remove(val)
-	} else if val == node.Val {
-		if node.Left != nil && node.Right != nil {
-			newRoot := node.Right.findMinValue()
-			node.Val = newRoot.Val
-			node.Right = node.Right.removeMinValue()
+// Remove a root from the sub-tree
+func (root *TreeNode) Remove(val int) *TreeNode {
+	if val < root.Val && root.Left != nil {
+		root.Left = root.Left.Remove(val)
+	} else if val > root.Val && root.Right != nil {
+		root.Right = root.Right.Remove(val)
+	} else if val == root.Val {
+		if root.Left != nil && root.Right != nil {
+			newRoot := root.Right.findMinValue()
+			root.Val = newRoot.Val
+			root.Right = root.Right.removeMinValue()
 		} else {
-			if node.Left != nil {
-				return node.Left
+			if root.Left != nil {
+				return root.Left
 			}
-			return node.Right
+			return root.Right
 		}
 	}
-	if node.reComputeHeight() {
-		return node.reBalance()
+	if root.reComputeHeight() {
+		return root.reBalance()
 	}
-	return node
+	return root
 }
 
 // Export function
-// Count the total of nodes in the sub-tree
-func (node *TreeNode) CountNodes() int {
-	res := 0
-	cur := []int{0}
-	node.postOrder(cur, &res)
-	return res
-}
-
-// Export function
-// Find the node with minimum val larger than or equal given val
-func (node *TreeNode) Ceiling(val int) *TreeNode {
-	res := node.findMinimumLargerOrEqual(val)
+// Find the root with minimum val larger than or equal given val
+func (root *TreeNode) Ceiling(val int) *TreeNode {
+	res := root.findMinimumLargerOrEqual(val)
 	if res.Val < val {
 		return nil
 	}
@@ -255,11 +242,61 @@ func (node *TreeNode) Ceiling(val int) *TreeNode {
 }
 
 // Export function
-// Find the node with the maximum val smaller than the given val
-func (node *TreeNode) Floor(val int) *TreeNode {
-	res := node.findMaximumSmallerOrEqual(val)
+// Find the root with the maximum val smaller than the given val
+func (root *TreeNode) Floor(val int) *TreeNode {
+	res := root.findMaximumSmallerOrEqual(val)
 	if res.Val > val {
 		return nil
 	}
 	return res
+}
+
+func (root *TreeNode) FindKthSmallestValueNode(k int) *TreeNode {
+	if root == nil {
+		return nil
+	}
+	if root.ChildCnt < k {
+		return nil
+	} else if root.ChildCnt == k {
+		return root.findMaxValue()
+	} else if k == 1 {
+		return root.findMinValue()
+	} else {
+		if root.Left != nil && root.Left.ChildCnt == k-1 {
+			return root
+		}
+		ls := root.Left.FindKthSmallestValueNode(k)
+		if ls != nil {
+			return ls
+		}
+		if root.Left == nil {
+			return root.Right.FindKthSmallestValueNode(k - 1)
+		}
+		return root.Right.FindKthSmallestValueNode(k - root.Left.ChildCnt - 1)
+	}
+}
+
+func (root *TreeNode) FindKthLargestValueNode(k int) *TreeNode {
+	if root == nil {
+		return nil
+	}
+	if root.ChildCnt < k {
+		return nil
+	} else if root.ChildCnt == k {
+		return root.findMinValue()
+	} else if k == 1 {
+		return root.findMaxValue()
+	} else {
+		if root.Right != nil && root.Right.ChildCnt == k-1 {
+			return root
+		}
+		rs := root.Right.FindKthLargestValueNode(k)
+		if rs != nil {
+			return rs
+		}
+		if root.Right == nil {
+			return root.Left.FindKthLargestValueNode(k - 1)
+		}
+		return root.Left.FindKthLargestValueNode(k - root.Right.ChildCnt - 1)
+	}
 }
