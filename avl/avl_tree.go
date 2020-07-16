@@ -251,8 +251,10 @@ func (root *TreeNode) Floor(val int) *TreeNode {
 	return res
 }
 
+// Export function
+// Find kth smallest node
 func (root *TreeNode) FindKthSmallestValueNode(k int) *TreeNode {
-	if root == nil {
+	if root == nil || k == 0 {
 		return nil
 	}
 	if root.ChildCnt < k {
@@ -276,8 +278,10 @@ func (root *TreeNode) FindKthSmallestValueNode(k int) *TreeNode {
 	}
 }
 
+// Export function
+// Find kth largest node
 func (root *TreeNode) FindKthLargestValueNode(k int) *TreeNode {
-	if root == nil {
+	if root == nil || k == 0 {
 		return nil
 	}
 	if root.ChildCnt < k {
